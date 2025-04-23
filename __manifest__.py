@@ -1,0 +1,20 @@
+{
+    'name': 'Hr allocation',
+    'version': '17.0',
+    'summary': 'HR allocation Management',
+    'sequence': 1,
+    'description': 'It manage employees allocation',
+    'category': 'Management',
+    'author': 'Sismatix',
+    'website': 'http://sismatix.co',
+    'depends': ['account','hr'],
+    'data': [
+        'security/ir.model.access.csv',
+        'data/hr_allocate_data.xml',
+        'views/menu_views.xml',  
+        'views/employee_allocate_views.xml',  
+    ],
+    'installable': True,
+    'application': True,
+    'license': 'LGPL-3',
+}

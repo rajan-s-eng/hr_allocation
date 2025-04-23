@@ -1,0 +1,6 @@
+<odoo>
+    <menuitem
+            id="menu_hr_allcation"
+            name="HR Allocation"
+            sequence="550"/>
+</odoo>

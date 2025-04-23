@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_employee_allocate,access_employee_allocate,model_employee_allocate,,1,1,1,1
+access_staff_requirements_line,access_staff_requirements_line,model_staff_requirements_line,,1,1,1,1
+access_staff_allocation_lineline,access_staff_allocation_lineline,model_staff_allocation_line,,1,1,1,1
