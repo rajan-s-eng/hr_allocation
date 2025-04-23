@@ -1,5 +1,5 @@
 <odoo>
-    
+
     <record id="hr_allocation_tree" model="ir.ui.view">
         <field name="name">employee.allocate.tree</field>
         <field name="model">employee.allocate</field>
@@ -9,7 +9,7 @@
                 <field name="company_id"/>
                 <field name="requested_user_id"/>
                 <field name="requeste_date"/>
-                <field name="job_duration"/>
+                <field name="no_of_days"/>
                 <field name="start_date"/>
                 <field name="end_date"/>
             </tree>
@@ -22,7 +22,12 @@
         <field name="arch" type="xml">
             <form string="Employee">
                 <header>
-                    <field name="state" widget="statusbar"/>
+                    <button name="action_submit" type="object" string="Submit" class="btn-primary"  invisible="state != 'draft'"/>
+                    <button name="action_approve" type="object" string="Approve" class="btn-primary"  invisible="state != 'request_submitted'"/>
+                    <button name="action_allocate" type="object" string="Allocate" class="btn-primary" invisible="state != 'approved'"/>
+                    <button name="action_cancel" type="object" string="Cancel" class="btn-primary" invisible="state == 'cancelled'"/>
+                    <button name="action_set_to_draft" type="object" string="Reset to Draft" class="btn-danger" invisible="state != 'cancelled'"/>
+                    <field name="state" widget="statusbar" statusbar_visible="draft,request_submitted,approved,allocated,cancelled"/>
                 </header>
                 <sheet>
                     <div class="o_title">
@@ -37,38 +42,33 @@
                             <field name="requeste_date"/>
                         </group>
                         <group>
-                            <field name="job_duration"/>
                             <field name="start_date" widget="daterange" options="{'end_date_field': 'end_date'}" string="Dates"/>
                             <field name="end_date" invisible="1"/>
+                            <field name="no_of_days"/>
                         </group>
                     </group>
-                   <!--  <div class="col_left col-sm-6">
-                        <div class="o_row">
-                            <field
-                                name="start_date"
-                                string="Dates"
-                                widget="daterange"
-                                options="{'end_date_field': 'end_date'}"/>
-                            <field name="end_date" invisible="1"/>
-                        </div>
-                    </div> -->
                     <notebook>
                         <page string="Staff Request">
-                            <field name="staff_requirement_line_ids">
+                            <field name="staff_requirement_line_ids" readonly="state not in ('draft')">
                                 <tree editable="bottom">
-                                    <field name="job_possition_id"/>
-                                    <field name="description"/>
+                                    <field name="job_position_id"/>
+                                    <field name="name"/>
                                     <field name="quantity"/>
                                     <field name="unit_price"/>
                                     <field name="sub_total"/> 
                                 </tree>
                             </field>
+                           <group colspan="12">
+                                <group class="oe_subtotal_footer">
+                                    <field name="total"/>
+                                </group>
+                            </group>
                         </page>
                         <page string="Staff Allocation">
                             <field name="staff_allocation_line_ids">
                                 <tree editable="bottom">
-                                    <field name="employee"/>
-                                    <field name="job_possition_id"/>
+                                    <field name="job_position_id"/>
+                                    <field name="employee_ids" widget="many2many_tags" domain="[('job_id', '=', job_position_id)]"/>
                                     <field name="start_date"/>
                                     <field name="end_date"/>
                                     <field name="no_of_days"/> 
@@ -77,6 +77,11 @@
                         </page>
                     </notebook>
                 </sheet>
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" widget="mail_followers"/>
+                    <field name="message_ids" widget="mail_thread"/>
+                    <field name="activity_ids" widget="mail_activity"/>
+                </div>
             </form>
         </field>
     </record>
@@ -90,7 +95,7 @@
                 <field name="company_id"/>
                 <field name="requested_user_id"/>
                 <field name="requeste_date"/>
-                <field name="job_duration"/>
+                <field name="no_of_days"/>
                 <field name="start_date"/>
                 <field name="end_date"/>
             </search>

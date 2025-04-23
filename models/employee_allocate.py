@@ -5,17 +5,19 @@ from datetime import timedelta
 class EmployeeAllocate(models.Model):
     _name = 'employee.allocate'
     _description = "Employee Allocate"
+    _inherit = ['mail.thread', 'mail.activity.mixin']
 
     staff_requirement_line_ids = fields.One2many('staff.requirements.line', 'staff_request_id', string='Staff Requirement')
     staff_allocation_line_ids = fields.One2many('staff.allocation.line', 'staff_allocation_id', string='Staff Allocate')
 
     name = fields.Char(string='Reference', readonly=True, index='trigram', default=lambda self: _('New'))
-    company_id = fields.Many2one("res.company", string="Requester Company", required=True)
-    requested_user_id = fields.Many2one("res.users", string="Request By")
-    requeste_date = fields.Datetime(string="Request Date", required=True, default=fields.Datetime.now)
-    job_duration = fields.Char(string="Job Duration", compute="_compute_duration")
+    company_id = fields.Many2one("res.company", string="Requester Company", required=True, default=lambda self: self.env.company, tracking=True)
+    requested_user_id = fields.Many2one("res.users", string="Requested By", default=lambda self: self.env.user, tracking=True)
+    requeste_date = fields.Datetime(string="Request Date", required=True, default=fields.Datetime.now, tracking=True)
+    no_of_days = fields.Char(string="Job Duration", compute="_compute_duration")
     start_date = fields.Datetime(required=True)
     end_date = fields.Datetime(string="End Date")
+    total = fields.Float(string="Total", compute='_compute_total', store=True)
 
     state = fields.Selection([
         ('draft', 'Draft'),
@@ -23,7 +25,22 @@ class EmployeeAllocate(models.Model):
         ('approved', 'Approved'),
         ('allocated', 'Allocated'),
         ('cancelled', 'Cancelled'),
-    ], default='draft', readonly=False, string="Status")
+    ], default='draft', readonly=False, string="Status", tracking=True)
+
+    def action_submit(self):
+        self.write({'state': 'request_submitted'})
+
+    def action_approve(self):
+        self.write({'state': 'approved'})
+
+    def action_allocate(self):
+        self.write({'state': 'allocated'})
+
+    def action_cancel(self):
+        self.write({'state': 'cancelled'})
+
+    def action_set_to_draft(self):
+        self.write({'state': 'draft'})
 
     @api.constrains('start_date', 'end_date')
     def _check_dates(self):
@@ -37,12 +54,18 @@ class EmployeeAllocate(models.Model):
             if record.start_date and record.end_date:
                 delta = record.end_date - record.start_date
                 days = delta.days
-                record.job_duration = f"{days} day{'s' if days > 1 else ''}"
+                record.no_of_days = f"{days} day{'s' if days > 1 else ''}"
             else:
-                record.job_duration = ""
+                record.no_of_days = ""
 
     @api.model_create_multi
     def create(self, vals_list):
         for vals in vals_list:
             vals['name'] = self.env['ir.sequence'].next_by_code('employee.allocate') or _("New")
         return super().create(vals_list)
+
+    @api.depends('staff_requirement_line_ids.sub_total')
+    def _compute_total(self):
+        for record in self:
+            record.total = sum(record.staff_requirement_line_ids.mapped('sub_total'))
+            print(f"__________________________: {record.total}")
