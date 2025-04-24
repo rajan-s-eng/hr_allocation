@@ -14,7 +14,8 @@ class EmployeeAllocate(models.Model):
     company_id = fields.Many2one("res.company", string="Requester Company", required=True, default=lambda self: self.env.company, tracking=True)
     requested_user_id = fields.Many2one("res.users", string="Requested By", default=lambda self: self.env.user, tracking=True)
     requeste_date = fields.Datetime(string="Request Date", required=True, default=fields.Datetime.now, tracking=True)
-    no_of_days = fields.Char(string="Job Duration", compute="_compute_duration")
+    no_of_days = fields.Char(string="Job Duration", compute="_compute_duration", store=True)
+    no_of_hours = fields.Char(string="No. of Hours", compute="_compute_duration", store=True)
     start_date = fields.Datetime(required=True)
     end_date = fields.Datetime(string="End Date")
     total = fields.Float(string="Total", compute='_compute_total', store=True)
@@ -54,9 +55,16 @@ class EmployeeAllocate(models.Model):
             if record.start_date and record.end_date:
                 delta = record.end_date - record.start_date
                 days = delta.days
-                record.no_of_days = f"{days} day{'s' if days > 1 else ''}"
+                total_minutes = delta.seconds // 60
+                hours, minutes = divmod(total_minutes, 60)
+
+                total_hours = days * 24
+                
+                record.no_of_days = f"{days} Day{'s' if days > 1 else ''}"
+                record.no_of_hours = f"{total_hours} Hour{'s' if total_hours > 1 else ''}"
             else:
-                record.no_of_days = ""
+                record.no_of_days = ''
+                record.no_of_hours = ''
 
     @api.model_create_multi
     def create(self, vals_list):

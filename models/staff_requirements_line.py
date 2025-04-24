@@ -8,6 +8,7 @@ class StaffRequirementsLine(models.Model):
     job_position_id = fields.Many2one('hr.job', string="Job Position", required=True)
     name = fields.Char(string="Description")
     quantity = fields.Float(string="Quantity", default=1.0)
+    no_of_employee = fields.Float(string="No of Employee", default=1.0)
     unit_price = fields.Float(string="Unit Price")
     sub_total = fields.Float(string="Sub Total", compute='_compute_sub_total', store=True)
 
